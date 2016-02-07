@@ -73,7 +73,7 @@ class GrahamScan():
         # Graham scan; note that points[N-1] is extreme point different from points[0]
         for i in range(k2, N):
             top = self.hull.pop()
-            while len(self.hull) and self.ccw(self.hull.peek(), top, points[i]) <= 0:
+            while self.ccw(self.hull.peek(), top, points[i]) <= 0:
                 top = self.hull.pop()
             self.hull.push(top)
             self.hull.push(points[i])
