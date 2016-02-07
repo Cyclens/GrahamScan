@@ -12,5 +12,5 @@ do
   diff ${F}.golden ${F}.python
 done
 
-#rm -f ../*.class
+rm -f ../*.class
 rm -f *.python
