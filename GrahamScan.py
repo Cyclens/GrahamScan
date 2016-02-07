@@ -23,7 +23,7 @@ class GrahamScan():
         @author Robert Sedgewick
         @author Kevin Wayne
 
-        @translator Mauro Lacy (J2P)
+        @translator Mauro Lacy (Java2Py)
     """
     def __init__(self, pts):
         """
@@ -36,10 +36,11 @@ class GrahamScan():
         
         # preprocess so that points[0] has lowest y-coordinate; break ties by x-coordinate
         # points[0] is an extreme point of the convex hull
-        # (alternatively, could do easily in linear time)
-        points.sort(key=lambda p: p[::-1])
+#        points.sort(key=lambda p: p[::-1])
+#        p = points[0]
+        # (alternatively, could do easily (and cleanly) in linear time)
+        p = min(points, key=lambda p: p[::-1])
         
-        p = points[0]
         def polar(q):
             """
                 sorts by polar angle with respect to base point points[0],
@@ -50,7 +51,8 @@ class GrahamScan():
             theta = atan2(dy, dx)
             r2 = dx*dx + dy*dy
             return (theta, r2)
-        points = [p] + sorted(points[1:], key=polar)
+        points.sort(key=polar)
+        
         self.hull.push(p)    # p[0] is first extreme point
 
         # find index k1 of first point not equal to points[0]
