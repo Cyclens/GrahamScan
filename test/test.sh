@@ -6,10 +6,11 @@ cd `dirname $0`
 
 for F in *.txt
 do
-  echo $F
+  echo -n "$F:	"
   ../GrahamScan.py <$F >${F}.python
 #  java-algs4 -cp ..:$CLASSPATH GrahamScan <$F >${F}.golden
-  diff ${F}.golden ${F}.python
+  diff -q ${F}.golden ${F}.python
+  [ $? -eq 0 ] && echo "PASSED"
 done
 
 rm -f ../*.class
