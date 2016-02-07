@@ -26,7 +26,7 @@ class stack():
     def pop(self):
         return self.stack.pop()
     
-def testStack(A):
+def testStack1(A):
     st = stack()
     for a in A:
         st.push(a)
@@ -45,4 +45,6 @@ TEST = [
 if __name__ == "__main__":
     from sys import stderr
     for T in TEST:
-        print "T:", T, ":", testStack(T)
+        ST = testStack1(T)
+        print "T:", T, ":", ST
+        assert(e1 == e2 for e1, e2 in zip(T, ST))
