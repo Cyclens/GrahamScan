@@ -29,22 +29,27 @@ class GrahamScan():
             Computes the convex hull of the specified array of points.
         """
         self.hull = stack()
+        self.concave = [] # indices of concave segments (in the original array)
 
         N = len(pts)
-        points = pts[::]
+#        points = pts[::]
+        points = [(p, i) for i, p in enumerate(pts)]
         
         # preprocess so that points[0] has lowest y-coordinate; break ties by x-coordinate
         # points[0] is an extreme point of the convex hull
 #        points.sort(key=lambda p: p[::-1])
 #        p = points[0]
         # (alternatively, could do easily (and cleanly) in linear time)
-        p = min(points, key=lambda p: p[::-1])
+#        p = min(points, key=lambda p: p[::-1])
+        p0 = min(points, key=lambda p: p[0][::-1])
         
         def polar(q):
             """
                 sorts by polar angle with respect to base point points[0],
                 breaking ties by distance (squared) to points[0]
             """
+            p = p0[0]
+            q = q[0]
             dx = q[0] - p[0]
             dy = q[1] - p[1]
             theta = atan2(dy, dx)
@@ -52,13 +57,13 @@ class GrahamScan():
             return (theta, r2)
         points.sort(key=polar)
         
-        self.hull.push(p)    # p[0] is first extreme point
+        self.hull.push(p0)    # p[0] is first extreme point
 
         # find index k1 of first point not equal to points[0]
         equal = True
         k1 = 1
         for k1 in range(1, N):
-            if p[0] != points[k1][0] or p[1] != points[k1][1]:
+            if p0[0][0] != points[k1][0][0] or p0[0][1] != points[k1][0][1]:
                 equal = False
                 break
         if equal:
@@ -67,7 +72,7 @@ class GrahamScan():
         # find index k2 of first point not collinear with points[0] and points[k1]
         k2 = k1 + 1
         for k2 in range(k1 + 1, N):
-            if self.ccw(p, points[k1], points[k2]) != 0:
+            if self.ccw(p0, points[k1], points[k2]) != 0:
                 break
         self.hull.push(points[k2-1]) # points[k2-1] is second extreme point
 
@@ -75,6 +80,8 @@ class GrahamScan():
         for i in range(k2, N):
             top = self.hull.pop()
             while self.ccw(self.hull.peek(), top, points[i]) <= 0:
+                # top is concave
+                self.concave.append(top[1])
                 top = self.hull.pop()
             self.hull.push(top)
             self.hull.push(points[i])
@@ -85,6 +92,9 @@ class GrahamScan():
             Is a->b->c a counterclockwise turn?
             Returns { -1, 0, +1 } if a->b->c is a { clockwise, collinear; counterclockwise } turn.
         """
+        a = a[0]
+        b = b[0]
+        c = c[0]
         area2 = (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
         if area2 < 0:
             return -1
@@ -97,7 +107,7 @@ class GrahamScan():
         """
             Returns the extreme points on the convex hull in counterclockwise order.
         """
-        return [p for p in self.hull]
+        return [p[0] for p in self.hull]
 
     # check that boundary of hull is strictly convex
     def is_convex(self):
@@ -110,6 +120,9 @@ class GrahamScan():
             if self.ccw(points[i], points[(i+1) % N], points[(i+2) % N]) <= 0:
                 return False
         return True
+    
+    def get_concavity_indices(self):
+        return self.concave
 
 if __name__ == '__main__':
     from sys import stdin 
