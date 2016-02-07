@@ -2,7 +2,6 @@
 """
     Computes the convex hull using the Graham scan algorithm.
     May have floating point issues if x- and y-coordinates are not integers.
-
 """
 #from sys import stderr
 
