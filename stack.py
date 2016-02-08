@@ -1,31 +1,5 @@
 #!/usr/bin/env python
 #coding: utf
-#class stack():
-#    def __init__(self):
-#        self.stack = []
-#        
-#    def __len__(self):
-#        return len(self.stack)
-#    
-#    def __repr__(self):
-#        return self.stack.__repr__()
-#        
-#    def __getitem__(self, i):
-#        return self.stack[i] 
-#    
-#    def __iter__(self):
-#        for e in self.stack:
-#            yield e
-#    
-#    def push(self, v):
-#        self.stack.append(v)
-#
-#    def peek(self):
-#        return self.stack[-1]
-#        
-#    def pop(self):
-#        return self.stack.pop()
-
 class stack(list):
     def __init__(self):
         super(stack, self).__init__()
@@ -36,9 +10,6 @@ class stack(list):
     def peek(self):
         return self[-1]
         
-    def pop(self):
-        return super(stack, self).pop()
-    
 def testStack(A):
     st = stack()
     for a in A:
