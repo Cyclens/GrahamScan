@@ -58,13 +58,11 @@ class GrahamScan():
         self.hull.push(p0)    # p[0] is first extreme point
 
         # find index k1 of first point not equal to points[0]
-        equal = True
         k1 = 1
         for k1 in range(1, N):
             if p0[0] != points[k1][0] or p0[1] != points[k1][1]:
-                equal = False
                 break
-        if equal:
+        else:
             return  # all points equal
         
         # find index k2 of first point not collinear with points[0] and points[k1]
