@@ -7,12 +7,17 @@
 
 from stack import stack
 from math import atan2
+
+from collections import namedtuple
+Point2D = namedtuple('Point2D', ['x', 'y'])
+
 class GrahamScan():
+
     """
         The GrahamScan class provides methods for computing the convex hull of a set of N points in the plane.
     
         The implementation uses the Graham-Scan convex hull algorithm.
-        
+               
         Time Complexity: O(N log N)
         Space Complexity: O(N)
     
@@ -27,35 +32,39 @@ class GrahamScan():
     def __init__(self, pts):
         """
             Computes the convex hull of the specified array of points.
+            
+            pts is a list of elements of class 'Point2D'.
+
         """
         self.hull = stack()
         self.concave = [] # indices of concave segments (in the original array)
 
         N = len(pts)
-#        points = pts[::]
-        points = [(p, i) for i, p in enumerate(pts)]
+       
+        # Create derived type with an added 'index' field; tag the elements with their (original) index
+        Point2Di = namedtuple('Point2Di', Point2D._fields + ('index',))
+        points = [Point2Di(*p, index=i) for i, p in enumerate(pts)]
         
-        # preprocess so that points[0] has lowest y-coordinate; break ties by x-coordinate
+        # Preprocess so that points[0] has lowest y-coordinate; break ties by x-coordinate
         # points[0] is an extreme point of the convex hull
-#        points.sort(key=lambda p: p[::-1])
-#        p = points[0]
+#        points.sort(key = lambda p: (p.y, p.x)])
+#        p0 = points[0]
         # (alternatively, could do easily (and cleanly) in linear time)
-#        p = min(points, key=lambda p: p[::-1])
-        p0 = min(points, key=lambda p: p[0][::-1])
+        p0 = min(points, key = lambda p: (p.y, p.x))
         
         def polar(q):
             """
-                sorts by polar angle with respect to base point points[0],
-                breaking ties by distance (squared) to points[0]
+                Sorts by polar angle with respect to base point p0,
+                breaking ties by distance (squared) to p0
             """
-            p = p0[0]
-            q = q[0]
-            dx = q[0] - p[0]
-            dy = q[1] - p[1]
+            p = p0
+            dx = q.x - p.x
+            dy = q.y - p.y
             theta = atan2(dy, dx)
             r2 = dx*dx + dy*dy
             return (theta, r2)
-        points.sort(key=polar)
+        
+        points.sort(key = polar)
         
         self.hull.push(p0)    # p[0] is first extreme point
 
@@ -63,7 +72,7 @@ class GrahamScan():
         equal = True
         k1 = 1
         for k1 in range(1, N):
-            if p0[0][0] != points[k1][0][0] or p0[0][1] != points[k1][0][1]:
+            if p0.x != points[k1].x or p0.y != points[k1].y:
                 equal = False
                 break
         if equal:
@@ -81,7 +90,7 @@ class GrahamScan():
             top = self.hull.pop()
             while self.hull and self.ccw(self.hull.peek(), top, points[i]) <= 0:
                 # top is concave
-                self.concave.append(top[1])
+                self.concave.append(top.index)
                 top = self.hull.pop()
             self.hull.push(top)
             self.hull.push(points[i])
@@ -92,10 +101,7 @@ class GrahamScan():
             Is a->b->c a counterclockwise turn?
             Returns { -1, 0, +1 } if a->b->c is a { clockwise, collinear; counterclockwise } turn.
         """
-        a = a[0]
-        b = b[0]
-        c = c[0]
-        area2 = (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
+        area2 = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
         if area2 < 0:
             return -1
         elif area2 > 0:
@@ -107,7 +113,7 @@ class GrahamScan():
         """
             Returns the extreme points on the convex hull in counterclockwise order.
         """
-        return [p[0] for p in self.hull]
+        return [Point2D(p.x, p.y) for p in self.hull]
 
     # check that boundary of hull is strictly convex
     def is_convex(self):
@@ -125,22 +131,23 @@ class GrahamScan():
         return self.concave
 
 if __name__ == '__main__':
-    from sys import stdin 
+    from sys import stdin
+    
     """
         Unit tests the GrahamScan class.
         Reads in an integer N and N points (specified by
         their x- and y-coordinates) from standard input;
         computes their convex hull; and prints out the points on the
         convex hull to standard output.
-    """
+    """    
     N = int(stdin.readline())
     points = list()
     for i in range(N):
         (x, y) = map(int, stdin.readline().split())
-        points.append((x, y))
+        points.append(Point2D(x, y))
     graham = GrahamScan(points)
     for p in graham.get_hull():
-        print p
+        print '(%d, %d)' % (p.x, p.y)
 
 """
     Copyright 2016, Mauro Lacy.
