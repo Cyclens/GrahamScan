@@ -57,9 +57,8 @@ class GrahamScan():
                 Sorts by polar angle with respect to base point p0,
                 breaking ties by distance (squared) to p0
             """
-            p = p0
-            dx = q.x - p.x
-            dy = q.y - p.y
+            dx = q.x - p0.x
+            dy = q.y - p0.y
             theta = atan2(dy, dx)
             r2 = dx*dx + dy*dy
             return (theta, r2)
