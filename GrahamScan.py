@@ -9,7 +9,8 @@ from stack import stack
 from math import atan2
 
 from collections import namedtuple
-Point2D = namedtuple('Point2D', ['x', 'y'])
+#Point2D = namedtuple('Point2D', ['x', 'y'])
+from Point2D import Point2D
 
 class GrahamScan():
 
@@ -27,7 +28,7 @@ class GrahamScan():
         @author Robert Sedgewick
         @author Kevin Wayne
 
-        @translator Mauro Lacy (Java2Py)
+        @author Mauro Lacy (Java2Py)
     """
     def __init__(self, pts):
         """
@@ -41,36 +42,24 @@ class GrahamScan():
 
         N = len(pts)
        
-        # Create derived type with an added 'index' field; tag the elements with their (original) index
-        Point2Di = namedtuple('Point2Di', Point2D._fields + ('index',))
-        points = [Point2Di(*p, index=i) for i, p in enumerate(pts)]
+        # Populate 'index' field, i.e. tag the points with their (original) index
+        points = [Point2D(p.x, p.y, i) for i, p in enumerate(pts)]
         
         # Preprocess so that points[0] has lowest y-coordinate; break ties by x-coordinate
         # points[0] is an extreme point of the convex hull
 #        points.sort(key = lambda p: (p.y, p.x)])
 #        p0 = points[0]
         # (alternatively, could do easily (and cleanly) in linear time)
-        p0 = min(points, key = lambda p: (p.y, p.x))
-        
-        def polar(q):
-            """
-                Sorts by polar angle with respect to base point p0,
-                breaking ties by distance (squared) to p0
-            """
-            dx = q.x - p0.x
-            dy = q.y - p0.y
-            theta = atan2(dy, dx)
-            r2 = dx*dx + dy*dy
-            return (theta, r2)
-        
-        points.sort(key = polar)
+        p0 = min(points, key = points[0].yOrder)
+               
+        points.sort(key = p0.polarOrder)
         
         self.hull.push(p0)    # p[0] is first extreme point
 
         # find index k1 of first point not equal to points[0]
         k1 = 1
         for k1 in range(1, N):
-            if p0.x != points[k1].x or p0.y != points[k1].y:
+            if p0 != points[k1]:
                 break
         else:
             return  # all points equal
@@ -78,14 +67,14 @@ class GrahamScan():
         # find index k2 of first point not collinear with points[0] and points[k1]
         k2 = k1 + 1
         for k2 in range(k1 + 1, N):
-            if self.ccw(p0, points[k1], points[k2]) != 0:
+            if p0.ccw(points[k1], points[k2]) != 0:
                 break
         self.hull.push(points[k2-1]) # points[k2-1] is second extreme point
 
         # Graham scan; note that points[N-1] is extreme point different from points[0]
         for i in range(k2, N):
             top = self.hull.pop()
-            while self.hull and self.ccw(self.hull.peek(), top, points[i]) <= 0:
+            while self.hull and self.hull.peek().ccw(top, points[i]) <= 0:
                 # top is concave
                 self.concave.append(top.index)
                 top = self.hull.pop()
@@ -93,24 +82,11 @@ class GrahamScan():
             self.hull.push(points[i])
 #        assert(self.is_convex())
 
-    def ccw(self, a, b, c):
-        """
-            Is a->b->c a counterclockwise turn?
-            Returns { -1, 0, +1 } if a->b->c is a { clockwise, collinear; counterclockwise } turn.
-        """
-        area2 = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
-        if area2 < 0:
-            return -1
-        elif area2 > 0:
-            return +1
-        else:
-            return  0
-
     def get_hull(self):
         """
             Returns the extreme points on the convex hull in counterclockwise order.
         """
-        return [Point2D(p.x, p.y) for p in self.hull]
+        return self.hull
 
     # check that boundary of hull is strictly convex
     def is_convex(self):
@@ -120,7 +96,7 @@ class GrahamScan():
         points = self.hull[::]
 
         for i in range(N):
-            if self.ccw(points[i], points[(i+1) % N], points[(i+2) % N]) <= 0:
+            if points[i].ccw(points[(i+1) % N], points[(i+2) % N]) <= 0:
                 return False
         return True
     
